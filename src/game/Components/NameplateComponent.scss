@@ -1,0 +1,85 @@
+.Nameplate {
+	background-color: rgba(0, 0, 0, .2); 
+	border-radius: .5em;
+	padding: .1rem;
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+	
+	.NameTag {
+		font-weight: bold;
+		color: #fff;
+		margin-top: .33em;
+		text-align: center;
+	}
+	
+	.Components {
+	  flex: 1;
+	  display: flex;
+	  flex-direction: column; 
+	  margin-top: .2rem;
+	  
+	  .Component {
+		flex: 1;
+		margin-bottom: .2rem;
+		margin-left: .2rem;
+		margin-right: .2rem;
+		
+		&.Healthbar {        
+		  width: 150px;
+		  height: 26px;
+		  padding: 5px;
+		  background: #ddd;
+		  border-radius: 5px;
+		  position: relative;
+		  
+		  .textWrapper {
+			position: absolute;
+			top: 0;
+			width: 100%;
+			height: 100%;
+			display: flex;
+			flex-direction: row;
+			align-items: center;
+			justify-content: center;
+			.text { 
+			  text-align: center;
+			  font-size: 0.7rem;
+			  color: ghostwhite;
+			}
+		  }
+		  .bar {
+			background: #c54;
+			width: 100%;
+			height: 16px;
+			position: relative;
+  
+			transition: width .5s linear;
+			 
+			.hit {
+			  background: rgba(255, 255, 255, 0.6);
+			  position: absolute;
+			  top: 0;
+			  right: 0;
+			  bottom: 0;
+			  width: 0px; 
+			  transition: width .5s linear;
+			}
+		  }
+		}
+	  }
+	} 
+  }
+  
+  
+  .Hunger {
+	.bar {
+	  background: #9370dbff !important;
+	}
+  }
+  
+  .Thirst {
+	.bar {
+	  background: #1e90ffff !important;    
+	}
+  }
