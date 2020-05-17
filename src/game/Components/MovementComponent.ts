@@ -7,7 +7,7 @@ export class MovementComponent extends Component {
 	protected _MoveState: MoveState;
 	protected _MoveSpeed: number; // the speed in units/millisecond
 
-	protected _Clock: Clock;  
+	private _Clock: Clock;  
 	protected _MoveTarget: Vector3;   
 
 	constructor(moveSpeed: number) {
@@ -87,23 +87,22 @@ export class HopMovementComponent extends MovementComponent {
 	public Update(){
 		super.Update();
 
-		if(this._MoveState = MoveState.IDLE)
+		if(this._MoveState == MoveState.IDLE)
 			return; 
 
 		let y: number = (Math.sin(10 * this._HopClock.getElapsedTime()) + 1) / 6;
 		this._AttachedEntity.Position.y = 1.15 + y;
 	}
 
-	/**
-	 * Hops the entity to the specified position.
-	 * @param moveTo - The Position to move the entity too.
-	 */
-	public MoveTo(moveTo: Vector3): void{	
-		super.MoveTo(moveTo); 
+	public Stop(){
+		super.Stop();
+		this._AttachedEntity.Position.y = 1.15;
+		this._HopClock.stop();
 	}
 
-	protected Stop() { 
-		super.Stop();
+	public MoveTo(moveTo: Vector3) {
+		super.MoveTo(moveTo);		
+		this._HopClock.start();
 	}
 }
 

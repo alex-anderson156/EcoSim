@@ -44,7 +44,7 @@ export class RandomMoveComponent extends Component {
 		if(this._IsStuck)
 			return;
 		
-		if(this._Clock.getElapsedTime() >= 1) {
+		if(this._Clock.getElapsedTime() >= 3) {
 
 			let iterationCount: number = 0; // 15
 			for(iterationCount = 0; iterationCount <= 15 ;iterationCount++){
@@ -68,6 +68,7 @@ export class RandomMoveComponent extends Component {
 				// if we get here. the creature is stuck and cant move.
 				console.log('This Entity is stuck and cant go anywhere. ', this._AttachedEntity);
 				this._IsStuck = true;
+				this._Clock.stop();
 			}
 		}
 	}

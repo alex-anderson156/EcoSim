@@ -26,7 +26,7 @@ export class Game {
 		this._Renderer = new WebGLRenderer({ logarithmicDepthBuffer: true });
 		this._Renderer.shadowMap.enabled = true;
 		this._Renderer.setSize( window.innerWidth, window.innerHeight);
-		this._Renderer.setClearColor(new Color(0x708090));
+		this._Renderer.setClearColor(new Color(0x4e5a65));
   
 		document.body.appendChild(this._Renderer.domElement); 
 		window.addEventListener('resize', this.OnWindowResize);
