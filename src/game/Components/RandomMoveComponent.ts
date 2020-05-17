@@ -1,6 +1,6 @@
 import { Component } from "./_Component";
 
-import { Group, Vector2, Vector3, Clock, BoxGeometry, Mesh, Line, MeshBasicMaterial, Color} from 'THREE';
+import { Group, Vector2, Vector3, Clock } from 'THREE';
 import { MovementComponent } from "./MovementComponent";
 import { World } from "../World";
 
@@ -10,11 +10,8 @@ export class RandomMoveComponent extends Component {
 
 	private _World: World;
 	private _Clock: Clock;
-
-
-	private _IsStuck: boolean;
-
-	private _PositionIndicator: Mesh;
+ 
+	private _IsStuck: boolean; 
 
 	constructor(world: World) {
 		super();
@@ -25,17 +22,7 @@ export class RandomMoveComponent extends Component {
 	}
 
 	public Render(group: Group): void { 
-		
-		const positionBox: BoxGeometry = new BoxGeometry(1, 1, 1);
-		const positionBoxMat: MeshBasicMaterial = new MeshBasicMaterial({color: new Color(0x00F)}); 
-		this._PositionIndicator = new Mesh(positionBox, positionBoxMat);
-		this._PositionIndicator.scale.set(.1, .1, .1);
-		group.add(this._PositionIndicator);
-
-		//const positionLine: Line = new Line()
-		//const positionLineMat: MeshBasicMaterial = new MeshBasicMaterial({color: new Color(0xFFF)});
-		//const positionLineMesh: Mesh = new Mesh(positionBox, positionBoxMat);
-
+		  
 	}
 
 	public Update(): void {
@@ -49,10 +36,6 @@ export class RandomMoveComponent extends Component {
 			let iterationCount: number = 0; // 15
 			for(iterationCount = 0; iterationCount <= 15 ;iterationCount++){
 				let moveToPosition: Vector3 = this.GetRandomMoveToVector3();
-
-				// Move this._PositionalIndicator to the point relative to me.
-				let relativePosition: Vector3 = new Vector3().copy(moveToPosition).sub(this._AttachedEntity.Position);
-				this._PositionIndicator.position.copy(relativePosition);
  
 				//query the world to get the tile data at that position;
 				let mapData = this._World.GetTileData(Math.round(moveToPosition.x), Math.round(moveToPosition.z));
