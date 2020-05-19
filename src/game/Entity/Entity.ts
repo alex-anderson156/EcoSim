@@ -1,7 +1,7 @@
 import { Scene, Vector3, Euler, Group, Mesh } from 'THREE';
 import * as _ from 'lodash';
 import { GLTFLoader , GLTF} from 'THREE/examples/jsm/loaders/GLTFLoader';
-import { Component } from '../Components/_Component';
+import { IComponent } from '../Components/_Component';
 import { Dictionary } from '../_System/Dictionary';
 
 export class Entity {
@@ -37,7 +37,7 @@ export class Entity {
 	public get Scale(): Vector3 { return this._Scale; }
 	public set Scale(value: Vector3) { this._Scale = value; }
 
-	private _Components: Dictionary<Component>;
+	private _Components: Dictionary<IComponent>;
 
 	/**
 	 * Initialises a new instance of the Entity class.
@@ -46,7 +46,7 @@ export class Entity {
 		this._Position = initialPosition
 		this._Scale = new Vector3(1, 1, 1);			
 		this.Rotate(0, 0, 0);
-		this._Components = new Dictionary<Component>();
+		this._Components = new Dictionary<IComponent>();
 	}
 
 	/**
@@ -119,11 +119,11 @@ export class Entity {
 
 	//#region Entity-Component System
 
-	public GetComponent<C extends Component>(key: string): C {
+	public GetComponent<C extends IComponent>(key: string): C {
 		return <C>this._Components.GetValueOrNull(key);
 	}
  
-	public AddComponents(...components: Component[]) {
+	public AddComponents(...components: IComponent[]) {
  
 		for(let component of components) {
 			if(this._Components.ContainsKey(component.Key))

@@ -2,8 +2,29 @@ import { Group } from 'THREE';
 import { Entity } from "../Entity";
 
 
+export interface IComponent {
+	Key: string;
 
-export abstract class Component {
+	/**
+	 * Assigns this component to an Entity - used so the component can interact with the entity or world the entity inhabits.
+	 * @param entity - The entity to attach this component to.
+	 */
+	AttachToEntity(entity: Entity): void;
+
+	/**
+	 * Renders any objects this Component requires to the Group for this Entity.
+	 * @param group - the group to render any objects too.
+	 */
+	Render(group: Group): void;
+
+	/**
+	 * Updates the Component.
+	 */
+	Update(): void;
+}
+
+
+export abstract class Component implements IComponent {
 
 	protected abstract _Key: string
 	/**

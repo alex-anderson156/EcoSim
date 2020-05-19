@@ -1,43 +1,49 @@
 import { Component } from "./_Component";
 
-import { Group, Vector3, CircleGeometry, Mesh, MeshBasicMaterial, Color} from 'THREE';
+import { Group, CircleGeometry, Mesh, MeshBasicMaterial, Color, Scene} from 'THREE';
+import { Entity } from "../Entity";
 
 
 export class SensorComponent extends Component {
 	protected _Key: string = 'SensorComponent';
+
+
+	public _SensorGroup: Group;
  
 	constructor() {
 		super(); 
+
+		this._SensorGroup = new Group();
 	}
 
 	public Render(group: Group): void { 
 		
-		const sensorCircle: CircleGeometry = new CircleGeometry(3, 16); 
-		const sensorCircleMat: MeshBasicMaterial = new MeshBasicMaterial({ color: new Color(0xadd8e6)});
+		const sensorCircle: CircleGeometry = new CircleGeometry(6, 16);  
+		const sensorCircleMat: MeshBasicMaterial = new MeshBasicMaterial({ color: new Color(0xadd8e6)})
+		sensorCircleMat.polygonOffset = true;
+		sensorCircleMat.depthWrite = false;
+		sensorCircleMat.depthTest = true;
 		sensorCircleMat.transparent = true;
-		sensorCircleMat.opacity = 0.4;
+		sensorCircleMat.opacity = 0.2;
 
 
 		let sensorMesh: Mesh = new Mesh(sensorCircle, sensorCircleMat);
+		sensorMesh.visible = false;
 		sensorMesh.rotateX(-Math.PI / 2);
 		sensorMesh.position.y += 0.25;
-		group.add(sensorMesh);
+		  
+		this._SensorGroup.add(sensorMesh); 
 
-
-		const sensorCircle2: CircleGeometry = new CircleGeometry(8, 16); 
-		const sensorCircleMat2: MeshBasicMaterial = new MeshBasicMaterial({ color: new Color(0xadd8e6)});
-		sensorCircleMat2.transparent = true;
-		sensorCircleMat2.opacity = 0.2;
-
-
-		let sensorMesh2: Mesh = new Mesh(sensorCircle2, sensorCircleMat2);
-		sensorMesh2.rotateX(-Math.PI / 2);
-		sensorMesh2.position.y += 0.24;
-		group.add(sensorMesh2);
+		group.add(this._SensorGroup);				
 	}
 
 	public Update(): void {
   
 	}
+
+
+	public EnableRendering(enabled: boolean = true): void {
+		this._SensorGroup.traverse(obj => obj.visible = enabled);
+	}  
 	
 }

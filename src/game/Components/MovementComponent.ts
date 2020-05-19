@@ -4,8 +4,18 @@ import { Component } from "./_Component";
 export class MovementComponent extends Component {
 	protected _Key: string = 'MovementComponent';
 
-	protected _MoveState: MoveState;
-	protected _MoveSpeed: number; // the speed in units/millisecond
+	protected _MoveState: MoveState
+	/**
+	 * Gets or sets the move state of the component.
+	 */
+	public get MoveState(): MoveState { return this._MoveState; }
+	public set MoveState(value: MoveState) { this._MoveState = value; }
+	
+	private _MoveSpeed: number
+	/**
+	 * Gets the speed of the entity in units/millisecond.
+	 */
+	public get MoveSpeed(): number { return this._MoveSpeed; } 
 
 	private _Clock: Clock;  
 	protected _MoveTarget: Vector3;   
@@ -27,11 +37,9 @@ export class MovementComponent extends Component {
 		if(this._MoveState == MoveState.IDLE)
 			return;
 
-		const elapsedFrameTime = this._Clock.getElapsedTime();
-
-		if(elapsedFrameTime == 0) {
-			return;
-		}
+		const elapsedFrameTime = this._Clock.getElapsedTime(); 
+		if(elapsedFrameTime == 0)
+			return; 
 
 		const distanceToMove = this._MoveSpeed / (elapsedFrameTime * 1000);
 		const distanceToTarget: number = this._AttachedEntity.Position.distanceTo(this._MoveTarget);
@@ -44,8 +52,7 @@ export class MovementComponent extends Component {
 		const distanceAsPercentageOfTarget: number = distanceToMove / distanceToTarget; 
 		const destination: Vector3 = this._AttachedEntity.Position.lerp(this._MoveTarget, distanceAsPercentageOfTarget);
 
-		this._AttachedEntity.Position.copy(destination); 
-
+		this._AttachedEntity.Position.copy(destination);  
 		if(this._AttachedEntity.Position.distanceToSquared(this._MoveTarget) <= 0.1) {
 			this.Stop();
 			return;
@@ -68,7 +75,7 @@ export class MovementComponent extends Component {
 	 */
 	public MoveTo(moveTo: Vector3): void{				 
 		this._MoveTarget = moveTo;
-		this._MoveState = MoveState.HOPPING;
+		this._MoveState = MoveState.MOVING;
 		this._Clock.start();
 	}
 	
@@ -106,7 +113,7 @@ export class HopMovementComponent extends MovementComponent {
 	}
 }
 
-enum MoveState {
+export enum MoveState {
 	IDLE, // I have no Instructions.
-	HOPPING, // Hopping
+	MOVING, // Moving
 }
