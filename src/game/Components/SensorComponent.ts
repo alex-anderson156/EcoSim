@@ -1,7 +1,7 @@
 import { Component } from "./_Component";
 
 import { Group, CircleGeometry, Mesh, MeshBasicMaterial, Color, Scene} from 'THREE';
-import { Entity } from "../Entity";
+import { Entity } from "../Entities";
 
 
 export class SensorComponent extends Component {

@@ -1,6 +1,6 @@
 import { Vector3 } from 'THREE';
 import { World } from "../World";
-import * as Entities from "./";
+import * as Entities from ".";
 import * as Components from "../Components";
 
 /**

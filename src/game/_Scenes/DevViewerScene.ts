@@ -9,15 +9,13 @@ import { MapRenderer } from '../World/MapRenderer';
 import { CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRenderer';
 import { CSS3DRenderer } from 'three/examples/jsm/renderers/CSS3DRenderer';
 
-import * as Entities from '../Entity'; 
+import * as Entities from '../Entities'; 
 import * as Components from '../Components';  
 
+import { BehaviourTree, RepeaterNode, SequenceNode, PickRandomTargetNode, MoveToTargetNode, BehaviourTreeExecutor, PauseNode } from '../BehaviourTree'
+import { RabbitRenderer } from '../Entities';
+
 export class DevViewerScene extends EcoScene {
-
-	private _MousePosition2D: Vector2;
-	private _Raycaster: Raycaster;
-
-
 	//#region Game Session Vars
 	private _World: World;
 
@@ -31,7 +29,13 @@ export class DevViewerScene extends EcoScene {
 	//#region Public Methods
 
 	public LoadContent(): Promise<void> {		 
-		return Promise.resolve();
+		this._RabbitRenderer = new RabbitRenderer();
+		
+		
+		return this._RabbitRenderer.Load()
+			.then(() => { 
+				
+			});
 	}
 
 	public BuildScene(wegGLRenderer: WebGLRenderer, css2drenderer: CSS2DRenderer, css3drenderer: CSS3DRenderer): void {	
@@ -51,7 +55,7 @@ export class DevViewerScene extends EcoScene {
 		this._SceneObj.add(ambientLight);
 
 		let pointLight: PointLight = new PointLight(0x404040, 3, 500, 2);
-		pointLight.position.set(32, 100, 32);
+		pointLight.position.set(5, 50, 5);
 		pointLight.castShadow = true;
 		let pointLightHelper: PointLightHelper = new PointLightHelper(pointLight); 
 
@@ -59,11 +63,11 @@ export class DevViewerScene extends EcoScene {
 		this._SceneObj.add(pointLightHelper); 
 		 
 		let regionDict = new Dictionary<Region>(); 
-		regionDict.Add('DeepWater', 	new Region('Water', 0.1, new Color(0x2b7897), false));
-		regionDict.Add('Water', 		new Region('Water', 0.2, new Color(0x45a4ca), false));
-		regionDict.Add('ShallowWater', 	new Region('Water', 0.3, new Color(0x81c1db), false));
- 
-		regionDict.Add('Sand', 	new Region('Sand', 0.4, new Color(0xceee8aa), true)); 	
+		//regionDict.Add('DeepWater', 	new Region('Water', 0.1, new Color(0x2b7897), false));
+		//regionDict.Add('Water', 		new Region('Water', 0.2, new Color(0x45a4ca), false));
+		//regionDict.Add('ShallowWater', 	new Region('Water', 0.3, new Color(0x81c1db), false));
+ 		
+		//regionDict.Add('Sand', 	new Region('Sand', 0.4, new Color(0xceee8aa), true)); 	
 		 
 		regionDict.Add('Grass',  new Region('Grass', 0.6, new Color(0x2cb42c), true));
 		regionDict.Add('Grass1', new Region('Grass', 0.7, new Color(0x279f27), true));
@@ -73,29 +77,53 @@ export class DevViewerScene extends EcoScene {
   
 
 		this._World = new World(
-			64, 64, 64,
+			11, 11, 11,
 			new PerlinNoiseMapGenerator(),
 			new MapRenderer(regionDict)
 		);
 		this._World.Build(this);		
-  
-		// Raycaster
-		this._Raycaster = new Raycaster(); 
-		window.addEventListener('mousemove', this.onMouseMove, false );
+
+		this._RabbitBT = new BehaviourTree(
+			new RepeaterNode(
+				new SequenceNode(
+					new PickRandomTargetNode(),
+					new MoveToTargetNode(),
+					new PauseNode(2)
+				)
+			)
+		);
+
+		this._Rabbits = new Array<Entities.Rabbit>();
+		this._RabbitBTExecutors = new Array<BehaviourTreeExecutor>();
+		
+		for(let i: number = 0; i <= 25; i++) {
+			let randX: number = Math.floor(Math.random() * this._World.WorldWidth);
+			let randZ: number = Math.floor(Math.random() * this._World.WorldDepth);
+
+
+			let rabbit = new Entities.Rabbit(new Vector3(randX, 1.15, randZ));
+			rabbit.AddComponents(
+				new Components.HopMovementComponent(.2)
+			)
+
+			this._Rabbits.push(rabbit);
+			this._RabbitRenderer.Render(this._SceneObj, rabbit);
+
+			let rabbitBTExecutor = new BehaviourTreeExecutor(this._RabbitBT, rabbit);
+			rabbitBTExecutor.Init();
+			this._RabbitBTExecutors.push(rabbitBTExecutor);
+		}
 	}
 
-	private _Rabbits: Entities.Rabbit[];
+
+	private _Rabbits: Array<Entities.Rabbit>;
+	private _RabbitRenderer: RabbitRenderer;
+	private _RabbitBT: BehaviourTree;
+	private _RabbitBTExecutors: Array<BehaviourTreeExecutor>;
  
 	public Update(): void {
-		if(this._MousePosition2D){
-			this._Raycaster.setFromCamera(this._MousePosition2D, this._Camera); 
-		} 
-
-		if(this._Rabbits) {
-			for(let rabbit of this._Rabbits)
-				rabbit.Update();
-		}
-		
+		for(let rabbitBTExecutor of this._RabbitBTExecutors)
+			rabbitBTExecutor.Update();	
 	}
 
 	//#endregion
@@ -106,16 +134,6 @@ export class DevViewerScene extends EcoScene {
 	//#endregion
 
 	//#region Events
-
-	private onMouseMove = (event: any) => {
-		if(!this._MousePosition2D)
-			this._MousePosition2D = new Vector2();
-	
-		// calculate mouse position in normalized device coordinates
-		// (-1 to +1) for both components	
-		this._MousePosition2D.x = ( event.clientX / window.innerWidth ) * 2 - 1;
-		this._MousePosition2D.y = - ( event.clientY / window.innerHeight ) * 2 + 1; 
-	} 
 
 	//#endregion
 }

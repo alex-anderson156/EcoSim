@@ -1,5 +1,7 @@
 import { Entity } from "./Entity";
 
+import * as _ from 'lodash'
+
 export class EntityCollection<E extends Entity> {
 
 	//#region Properties
@@ -19,8 +21,17 @@ export class EntityCollection<E extends Entity> {
 		this._Entities.push(entity);
 	}
 
-	public FindClosest(searcher: Entity) {
+	public Remove(entity: E): void {
+		let index: number = _.indexOf(this._Entities, entity);
+		this._Entities.splice(index, 1);
+	}
 
+	public FindClosest(searcher: Entity) {
+		return _.chain(this._Entities)
+			.map(e => searcher.Position.distanceTo(e.Position))
+			.sort()
+			.first()
+			.value();
 	}
 
 	//#endregion

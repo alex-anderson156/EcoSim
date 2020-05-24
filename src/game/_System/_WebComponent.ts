@@ -6,10 +6,8 @@ export interface IWebComponentTemplate {
 
 export function WebComponentDecorator(componentData: IWebComponentTemplate) {
 	return function (constructor: CustomElementConstructor) {
-		debugger;
 		customElements.define(componentData.componentName, constructor); 
 		Reflect.defineProperty(constructor.prototype, 'metadata', { value: { componentData: componentData } }); 
-
 		return 
 	}
 }

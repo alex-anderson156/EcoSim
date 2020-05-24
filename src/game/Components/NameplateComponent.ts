@@ -5,31 +5,14 @@ import { CSS3DObject } from 'three/examples/jsm/renderers/CSS3DRenderer';
 import { WebComponentDecorator, WebComponent } from "../_System/_WebComponent";
 
 import './NameplateComponent.scss';
-import { Entity } from "../Entity";
+import { Entity } from "../Entities";
 
 //https://codepen.io/dwidomski/pen/KBzuo
 @WebComponentDecorator({ 
 	componentName: 'eco-nameplate',
 	template: `
-<div class="Nameplate">
-	<div class="NameTag">Bugz</div>
+<div class="Nameplate"> 
 	<div class="Components"> 
-		<div class="Component Healthbar Hunger">
-			<div class="bar">
-				<div class="hit"></div> 
-			</div>
-			<div class="textWrapper">
-				<div class="text">Hunger: 100%</div>
-			</div>
-		</div>
-		<div class="Component Healthbar Thirst">
-			<div class="bar">
-				<div class="hit"></div>
-			</div>
-		<div class="textWrapper">
-			<div class="text">Thirst: 100%</div>
-		</div>
-		</div> 
 	</div>
 </div>`
 })
@@ -37,7 +20,8 @@ export class NameplateComponent extends WebComponent implements IComponent {
 	protected _Key: string = 'NameplateComponent';
 	public get Key(): string { return this._Key; }
 
-	protected _AttachedEntity: Entity;
+	protected _AttachedEntity: Entity; 
+	private _$ComponentsDiv: HTMLElement;
  
 	constructor() {
 		super(); 
@@ -52,9 +36,20 @@ export class NameplateComponent extends WebComponent implements IComponent {
 
 	//#endregion
 
+	//#region Public Methods
+
+	public AddComponent($component: HTMLElement) {
+		this._$ComponentsDiv.appendChild($component);
+	}
+
+	//#endregion Public Methods
+
 	//#region IComponent
 
 	public Render(group: Group): void {   
+
+		this._$ComponentsDiv = this.querySelector('.Nameplate.Component');
+
 		const nt = new CSS3DObject(this);
 		nt.position.y += 3;
 		nt.scale.set(0.01, 0.01, 0.01);

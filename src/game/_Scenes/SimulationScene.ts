@@ -11,9 +11,8 @@ import { CSS3DRenderer } from 'three/examples/jsm/renderers/CSS3DRenderer';
 
 import * as _ from 'lodash';
 
-import * as Entities from '../Entity'; 
+import * as Entities from '../Entities'; 
 import * as Components from '../Components';   
-import { RandomMoveComponent } from '../Components';
 
 
 export class SimulationScene extends EcoScene {
@@ -136,10 +135,10 @@ export class SimulationScene extends EcoScene {
 				}
 
 				let plant: Entities.Plant = new Entities.Plant(new Vector3(randX, 1, randZ));
+
 				plant.AddComponents(
-					//new Components.NameplateComponent(),
-					new Components.PlantComponent(5),
-				);
+					new Components.HealthComponent(5, 10).Subscribe(plant),
+				)
 				
 				plantRenderer.Render(this._SceneObj, plant);
 				this._Plants.Add(plant);
@@ -162,24 +161,21 @@ export class SimulationScene extends EcoScene {
 						continue;
 					}
 					
-					let rabbit: Entities.Rabbit = new Entities.Rabbit(
+					let rabbit: Entities.Entity = new Entities.Entity(
 						new Vector3(randX, 1.15, randZ),
 					);					
 
 					rabbit.AddComponents(
-						new Components.HopMovementComponent(1),
 						//new Components.NameplateComponent(),
 						new Components.HungerComponent(10),
-						new Components.RandomMoveComponent(this._World,),
 						//new Components.RabbitBehaviourComponent(this._World, this._Plants)
 					)
-					 
-					rabbitLoader.Render(this._SceneObj, rabbit); 
+ 					rabbitLoader.Render(this._SceneObj, rabbit); 
 					this._Rabbits.Add(rabbit);
 					i++;
 				}
 			});
 	}
-
+  
 	//#endregion
 }

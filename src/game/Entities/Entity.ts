@@ -3,8 +3,15 @@ import * as _ from 'lodash';
 import { GLTFLoader , GLTF} from 'THREE/examples/jsm/loaders/GLTFLoader';
 import { IComponent } from '../Components/_Component';
 import { Dictionary } from '../_System/Dictionary';
+import { Guid } from '../_System/Guid';
 
 export class Entity {
+
+	private readonly _UUID: Guid;
+	/**
+	 * Gets a Globally Unique identifier for this Entitiy.
+	 */
+	public get UUID(): Guid { return this._UUID;}
 
 	protected _Position: Vector3;
 	/**
@@ -43,6 +50,7 @@ export class Entity {
 	 * Initialises a new instance of the Entity class.
 	 */
 	constructor(initialPosition: Vector3) {
+		this._UUID
 		this._Position = initialPosition
 		this._Scale = new Vector3(1, 1, 1);			
 		this.Rotate(0, 0, 0);

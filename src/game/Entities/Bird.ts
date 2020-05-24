@@ -9,6 +9,7 @@ export class Bird extends Entity {
 
 	constructor(position: Vector3) {
 		super(position); 
+
 	} 
 }
 

@@ -1,6 +1,5 @@
-import { Group } from 'THREE';
-import { Entity } from "../Entity";
-
+import { Entity } from "../Entities/Entity";
+import { Group } from 'THREE'
 
 export interface IComponent {
 	Key: string;
