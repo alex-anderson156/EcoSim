@@ -100,11 +100,10 @@ export class DevViewerScene extends EcoScene {
 			let randX: number = Math.floor(Math.random() * this._World.WorldWidth);
 			let randZ: number = Math.floor(Math.random() * this._World.WorldDepth);
 
-
 			let rabbit = new Entities.Rabbit(new Vector3(randX, 1.15, randZ));
 			rabbit.AddComponents(
 				new Components.HopMovementComponent(.2)
-			)
+			);
 
 			this._Rabbits.push(rabbit);
 			this._RabbitRenderer.Render(this._SceneObj, rabbit);

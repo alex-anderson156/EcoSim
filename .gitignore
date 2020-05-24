@@ -2,5 +2,6 @@
 node_modules/
 trello/
 dist/
+.vscode/
 
 *.ps1

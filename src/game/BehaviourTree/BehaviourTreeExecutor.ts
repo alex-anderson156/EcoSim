@@ -51,6 +51,9 @@ export class BehaviourTreeExecutor implements IExecutionContext {
 
 	public Update() {
 		// Process Active Nodes 
+		// TODO AA : Do we really need to process all active nodes, or only the top level one?
+		//  I think we can get away with only the top level node if it returns RUNNING.
+		//  Q. What about parallel running? 
 		for (let activeNode of _.reverse(this._ActiveNodes)) {
 			activeNode.Process(this._DataContext);
 		}
