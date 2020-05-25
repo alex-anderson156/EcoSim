@@ -22,36 +22,42 @@ export class NameplateComponent extends WebComponent implements IComponent {
 
 	protected _AttachedEntity: Entity; 
 	private _$ComponentsDiv: HTMLElement;
+
+	private _ElementsToAdd: Array<HTMLElement>;
  
 	constructor() {
 		super(); 
+
+		this._ElementsToAdd = [];
 	}
 	 
 
 	//#region WebComponent
 
-	public AddWebComponent(): void {
-
+	public AddWebComponent($component: HTMLElement): void {
+		this._ElementsToAdd.push($component);
 	}
 
 	//#endregion
 
 	//#region Public Methods
 
-	public AddComponent($component: HTMLElement) {
-		this._$ComponentsDiv.appendChild($component);
-	}
+	public RenderWebComponent(){
+		super.RenderWebComponent();
 
+		this._$ComponentsDiv = this.querySelector('.Nameplate .Components');
+		for(let $component of this._ElementsToAdd)
+			this._$ComponentsDiv.appendChild($component);
+	}
+ 
 	//#endregion Public Methods
 
 	//#region IComponent
 
 	public Render(group: Group): void {   
-
-		this._$ComponentsDiv = this.querySelector('.Nameplate.Component');
-
+ 
 		const nt = new CSS3DObject(this);
-		nt.position.y += 3;
+		nt.position.y += 1;
 		nt.scale.set(0.01, 0.01, 0.01);
 		group.add(nt); 
 	}

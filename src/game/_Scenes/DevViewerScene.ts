@@ -12,12 +12,26 @@ import { CSS3DRenderer } from 'three/examples/jsm/renderers/CSS3DRenderer';
 import * as Entities from '../Entities'; 
 import * as Components from '../Components';  
 
-import { BehaviourTree, RepeaterNode, SequenceNode, PickRandomTargetNode, MoveToTargetNode, BehaviourTreeExecutor, PauseNode } from '../BehaviourTree'
-import { RabbitRenderer } from '../Entities';
+import { BehaviourTree, RepeaterNode, SequenceNode, PickRandomTargetNode, MoveToTargetNode, BehaviourTreeExecutor, PauseNode, AmIHungryNode, EatFoodSourceNode, FindFoodSourceNode, SuccessorNode } from '../BehaviourTree' 
+import { BehaviourTreeSystem } from '../Systems/BehaviourTreeSystem'; 
+import { EntitySystem } from '../Systems';
+import { IDevCommand } from '../UI/DeveloperConsole/Commands/IDevCommand'; 
+import { MovementComponent } from '../Components';
+import { DeveloperConsole } from '../UI/DeveloperConsole/DeveloperConsole';
 
 export class DevViewerScene extends EcoScene {
 	//#region Game Session Vars
 	private _World: World;
+
+	private _RabbitBT: BehaviourTree;
+	private _Rabbits: Entities.EntityCollection;
+	private _RabbitRenderer: Entities.RabbitRenderer;	
+
+	private _Plants: Entities.EntityCollection;
+	private _PlantRenderer: Entities.PlantRenderer;
+
+	private _BehaviourTreeSystem: BehaviourTreeSystem;
+	private _EntitySystem: EntitySystem;
 
 	//#endregion
 
@@ -28,11 +42,20 @@ export class DevViewerScene extends EcoScene {
 
 	//#region Public Methods
 
-	public LoadContent(): Promise<void> {		 
-		this._RabbitRenderer = new RabbitRenderer();
+	public LoadContent(): Promise<void> {	
 		
+		let promises: Array<Promise<any>> = new Array<Promise<any>>();
+ 
+		this._RabbitRenderer = new Entities.RabbitRenderer();
+		promises.push(this._RabbitRenderer.Load());
+ 
+		this._PlantRenderer = new Entities.PlantRenderer();
+		promises.push(this._PlantRenderer.Load());
+
+		this._BehaviourTreeSystem = new BehaviourTreeSystem();
+		this._EntitySystem = new EntitySystem();
 		
-		return this._RabbitRenderer.Load()
+		return Promise.all(promises)
 			.then(() => { 
 				
 			});
@@ -63,66 +86,82 @@ export class DevViewerScene extends EcoScene {
 		this._SceneObj.add(pointLightHelper); 
 		 
 		let regionDict = new Dictionary<Region>(); 
-		//regionDict.Add('DeepWater', 	new Region('Water', 0.1, new Color(0x2b7897), false));
-		//regionDict.Add('Water', 		new Region('Water', 0.2, new Color(0x45a4ca), false));
-		//regionDict.Add('ShallowWater', 	new Region('Water', 0.3, new Color(0x81c1db), false));
- 		
-		//regionDict.Add('Sand', 	new Region('Sand', 0.4, new Color(0xceee8aa), true)); 	
 		 
-		regionDict.Add('Grass',  new Region('Grass', 0.6, new Color(0x2cb42c), true));
-		regionDict.Add('Grass1', new Region('Grass', 0.7, new Color(0x279f27), true));
-		regionDict.Add('Grass2', new Region('Grass', 0.8, new Color(0x228b22), true));
-		regionDict.Add('Grass3', new Region('Grass', 0.9, new Color(0x1d771d), true, true));
-		regionDict.Add('Grass4', new Region('Grass', 1.1, new Color(0x186218), true, true));
-  
-
+		regionDict.Add('Water',  new Region('Water', 0.8, new Color(0x45a4ca), false));  
+		regionDict.Add('Grass',  new Region('Grass', 1.1, new Color(0x2cb42c), true)); 
+   
 		this._World = new World(
-			11, 11, 11,
-			new PerlinNoiseMapGenerator(),
+			5, 5, 5,
+			new StaticMapGenerator(
+				[
+					[1,0,0,0,0],
+					[1,0,1,1,1],
+					[1,0,1,0,1],
+					[1,0,0,0,1],
+					[1,1,1,1,1],
+				]
+			),
 			new MapRenderer(regionDict)
 		);
-		this._World.Build(this);		
+		this._World.Build(this);
+ 
+		this._Rabbits = new Entities.EntityCollection();
+		this._Plants = new Entities.EntityCollection();
+  
 
-		this._RabbitBT = new BehaviourTree(
-			new RepeaterNode(
-				new SequenceNode(
-					new PickRandomTargetNode(),
-					new MoveToTargetNode(),
-					new PauseNode(2)
-				)
-			)
-		);
+		// --
+		// Create plants
+		for (let i = 0; i < 1; ) {
+			//let randX: number = Math.floor(Math.random() * this._World.WorldWidth);
+			//let randZ: number = Math.floor(Math.random() * this._World.WorldDepth);
 
-		this._Rabbits = new Array<Entities.Rabbit>();
-		this._RabbitBTExecutors = new Array<BehaviourTreeExecutor>();
-		
-		for(let i: number = 0; i <= 25; i++) {
-			let randX: number = Math.floor(Math.random() * this._World.WorldWidth);
-			let randZ: number = Math.floor(Math.random() * this._World.WorldDepth);
+			//if(!this._World.IsPassable(randX, randZ)) { 
+			//	continue; 
+			//} 
 
-			let rabbit = new Entities.Rabbit(new Vector3(randX, 1.15, randZ));
+			let plant: Entities.Entity = new Entities.Entity(new Vector3(2, 1, 2));
+			plant.AddComponents( 
+				new Components.NameplateComponent(),
+			);	
+
+			this._Plants.Add(plant);
+			this._PlantRenderer.Render(this._SceneObj, plant);
+			i++;
+		}
+ 
+		// --
+		// Create Rabbits
+		for(let i: number = 0; i < 1 ; ) {
+			//let randX: number = Math.floor(Math.random() * this._World.WorldWidth);
+			//let randZ: number = Math.floor(Math.random() * this._World.WorldDepth);
+
+			//if(!this._World.IsPassable(randX, randZ)) { 
+			//	continue; 
+			//} 
+
+			let rabbit = new Entities.Entity(new Vector3(0, 1.15, 0));
 			rabbit.AddComponents(
-				new Components.HopMovementComponent(.2)
+				new Components.HopMovementComponent(.2, this._World),
+				new Components.NameplateComponent(),
+				new Components.HungerComponent(10, 3),
+				new Components.ThirstComponent(10)
 			);
 
-			this._Rabbits.push(rabbit);
-			this._RabbitRenderer.Render(this._SceneObj, rabbit);
+			this._Rabbits.Add(rabbit);
+			this._RabbitRenderer.Render(this._SceneObj, rabbit); 
+			//this._BehaviourTreeSystem.Add(new BehaviourTreeExecutor(this._RabbitBT, rabbit));
 
-			let rabbitBTExecutor = new BehaviourTreeExecutor(this._RabbitBT, rabbit);
-			rabbitBTExecutor.Init();
-			this._RabbitBTExecutors.push(rabbitBTExecutor);
-		}
+			i++;
+		} 
+		this._EntitySystem.AddCollections(this._Rabbits);
+
+
+		DeveloperConsole.Register(new MoveToDevCommand(this._World, this._Rabbits.Entities[0]));
 	}
-
-
-	private _Rabbits: Array<Entities.Rabbit>;
-	private _RabbitRenderer: RabbitRenderer;
-	private _RabbitBT: BehaviourTree;
-	private _RabbitBTExecutors: Array<BehaviourTreeExecutor>;
  
-	public Update(): void {
-		for(let rabbitBTExecutor of this._RabbitBTExecutors)
-			rabbitBTExecutor.Update();	
+	public Update(): void {	
+		this._EntitySystem.Update();	 
+		this._Rabbits.Entities.forEach(e => e.Update());
 	}
 
 	//#endregion
@@ -135,4 +174,27 @@ export class DevViewerScene extends EcoScene {
 	//#region Events
 
 	//#endregion
+}
+
+
+class MoveToDevCommand implements IDevCommand {
+	Keyword: string = 'moveto';
+	Format: string = '$x$ $y$';
+
+	private _EntityToAct: Entities.Entity;
+	private _World: World;
+
+	constructor(world: World, actor: Entities.Entity) {
+		this._World = world;
+		this._EntityToAct = actor;
+	}
+
+	Execute(console: import("../UI/DeveloperConsole/DeveloperConsole").IDeveloperConsoleContext, args: Dictionary<any>): void {
+		
+		let movementComponent = this._EntityToAct.GetComponent<MovementComponent>('MovementComponent'); 
+		const movePosition: Vector3 = new Vector3(args.GetValue('x'), 1, args.GetValue('y')); 
+		movementComponent.MoveTo(movePosition);
+
+	}
+	
 }

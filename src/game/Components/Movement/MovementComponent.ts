@@ -1,5 +1,5 @@
 import { Group, Vector3, Clock} from 'THREE';
-import { Component } from "./_Component";
+import { Component } from "../_Component";
 
 export class MovementComponent extends Component {
 	protected _Key: string = 'MovementComponent';
@@ -79,38 +79,6 @@ export class MovementComponent extends Component {
 		this._Clock.start();
 	}
 	
-}
-
-export class HopMovementComponent extends MovementComponent {
-
-	protected _HopClock: Clock;  
-	
-	constructor(moveSpeed: number) {
-		super(moveSpeed);
-		this._HopClock = new Clock();
-		this._HopClock.start();
-	}
-
-	public Update(){
-		super.Update();
-
-		if(this._MoveState == MoveState.IDLE)
-			return; 
-
-		let y: number = (Math.sin(10 * this._HopClock.getElapsedTime()) + 1) / 6;
-		this._AttachedEntity.Position.y = 1.15 + y;
-	}
-
-	public Stop(){
-		super.Stop();
-		this._AttachedEntity.Position.y = 1.15;
-		this._HopClock.stop();
-	}
-
-	public MoveTo(moveTo: Vector3) {
-		super.MoveTo(moveTo);		
-		this._HopClock.start();
-	}
 }
 
 export enum MoveState {

@@ -1,85 +1,59 @@
-.Nameplate {
-	background-color: rgba(0, 0, 0, .2); 
-	border-radius: .5em;
-	padding: .1rem;
+
+
+eco-hunger, eco-thirst {
+	&.HideMe {
+		display: none;
+	}
+}
+
+.Lifebar {
 	display: flex;
-	flex-direction: column;
-	align-items: stretch;
+	flex-direction: row;
 	
-	.NameTag {
-		font-weight: bold;
-		color: #fff;
-		margin-top: .33em;
-		text-align: center;
+	.LifebarFragment {
+	  margin: 1px;
+	  width: 10px;
+	  height: 6px;
+	  
+	  border: 1px solid black;
+	  border-radius: 3px;
 	}
 	
-	.Components {
-	  flex: 1;
-	  display: flex;
-	  flex-direction: column; 
-	  margin-top: .2rem;
+	
+	&.Hunger {
+	  	.LifebarFragment {
+		  background: darken(#279f27, 30%);
 	  
-	  .Component {
-		flex: 1;
-		margin-bottom: .2rem;
-		margin-left: .2rem;
-		margin-right: .2rem;
-		
-		&.Healthbar {        
-		  width: 150px;
-		  height: 26px;
-		  padding: 5px;
-		  background: #ddd;
-		  border-radius: 5px;
-		  position: relative;
-		  
-		  .textWrapper {
-			position: absolute;
-			top: 0;
-			width: 100%;
-			height: 100%;
-			display: flex;
-			flex-direction: row;
-			align-items: center;
-			justify-content: center;
-			.text { 
-			  text-align: center;
-			  font-size: 0.7rem;
-			  color: ghostwhite;
-			}
-		  }
-		  .bar {
-			background: #c54;
-			width: 100%;
-			height: 16px;
-			position: relative;
-  
-			transition: width .5s linear;
-			 
-			.hit {
-			  background: rgba(255, 255, 255, 0.6);
-			  position: absolute;
-			  top: 0;
-			  right: 0;
-			  bottom: 0;
-			  width: 0px; 
-			  transition: width .5s linear;
-			}
+	  	&.Full {
+		  background: #279f27;
 		  }
 		}
+	}
+	&.Thirst {
+	  	.LifebarFragment {
+		  background: darken(#1e7dff, 30%);
+
+		&.Full {
+			background: #1e7dff;
+		}
+	  } 
+	}
+	&.Reproduction {
+		.LifebarFragment {
+		background: darken(#7339ac, 30%);
+
+		&.Full {
+		  background: #7339ac;
 	  }
 	} 
   }
-  
-  
-  .Hunger {
-	.bar {
-	  background: #9370dbff !important;
-	}
-  }
-  
-  .Thirst {
-	.bar {
-	  background: #1e90ffff !important;    
+	&.Health {
+	  	.LifebarFragment {
+		  background: darken(#ff1a1a, 30%);
+
+		  &.Full {
+			background: #ff1a1a;
+		}
+	  } 
 	}
   }

@@ -1,6 +1,8 @@
 import { Game } from './game/Program';
 import { GameModeType } from './game/IGameArgs';
 
+import * as DevConsole from './game/UI/DeveloperConsole/DeveloperConsole'
+
 import './styles/index.scss';
 
 window.onload = () => {
@@ -15,4 +17,6 @@ window.onload = () => {
 
 	let instance: Game = new Game();
 	instance.Run({ GameMode: gameMode });
+
+	DevConsole.DeveloperConsole.Init();
 }

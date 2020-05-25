@@ -4,42 +4,46 @@ import { IExecutionContext } from "../BehaviourTreeExecutor";
 import { IBehaviourTreeDataContext } from "../BehaviourTreeDataContext";
  
 
-export class PauseNode extends BehaviourNode {
+export class EatFoodSourceNode extends BehaviourNode {
+ 
 
-	private _PauseDuration: number;
-
-	constructor(durationInSeconds: number) {
-		super();
-		this._PauseDuration = durationInSeconds;
+	constructor() {
+		super(); 
 	}
 
 	public CreateExecutor(): IExecutorNode {
-		return new PauseNodeExecutor(this._PauseDuration);
+		return new EatFoodSourceExecutor();
 	} 
 }
 
+
 import { Clock } from 'THREE';
 import { HungerComponent } from "../../Components";
+import { Entity } from "../../Entities";
 
-export class PauseNodeExecutor extends ExecutorNode {
-  	private _PauseDuration: number;
-
+export class EatFoodSourceExecutor extends ExecutorNode {
+	   
+	private _ClosestFoodSource: Entity = null;
 	private _Clock: Clock;
 
-	constructor(durationInSeconds: number) {
-		super();
-		this._PauseDuration = durationInSeconds;
+	constructor() {
+		super(); 
 		this._Clock = new Clock(false);
 	}
 
 	public Init(executionContext: IExecutionContext, dataContext: IBehaviourTreeDataContext): void {
-		super.Init(executionContext, dataContext);
-		this._Clock.start();
+		super.Init(executionContext, dataContext); 
+		this._ClosestFoodSource = dataContext.GetVar<Entity>('ClosestFoodSource');
+		this._Clock.start();		
 	}
 
 	public Process(dataContext: IBehaviourTreeDataContext): void { 
-		if(this._Clock.getElapsedTime() >= this._PauseDuration) {
+		if(this._Clock.getElapsedTime() >= 3) {
+			dataContext.Entity.GetComponent<HungerComponent>("HungerComponent").ReplenishHunger(3);
 			this.Success();
+		}
+		else {
+			this.Running();
 		} 
 	} 
 }

@@ -4,14 +4,14 @@ import { CompositeNode, CompositeNodeExecutor } from "./_CompositeNode";
 import { IExecutionContext } from "../BehaviourTreeExecutor";
 import { IBehaviourTreeDataContext } from "../BehaviourTreeDataContext";
 
-export class SequenceNode extends CompositeNode {
+export class SelectorNode extends CompositeNode {
 
 	public CreateExecutor() : IExecutorNode {
-		return new SequenceNodeExecutor(...this._ChildNodes);
+		return new SelectorNodeExecutor(...this._ChildNodes);
 	}
 }
 
-export class SequenceNodeExecutor extends CompositeNodeExecutor {
+export class SelectorNodeExecutor extends CompositeNodeExecutor {
  
 	public Init(executionContext: IExecutionContext, dataContext: IBehaviourTreeDataContext): void {
 		super.Init(executionContext, dataContext);
@@ -27,19 +27,19 @@ export class SequenceNodeExecutor extends CompositeNodeExecutor {
 			return;
 		}
 
-		if(state == BehaviourNodeState.FAIL) {
-			this._ExecutionContext.RemoveExecutable(this._ActiveElement);
-			this._ActiveElement = null;
-			this.Fail();
-			return;
-		}
-					
-		if(this._ActiveElementIndex >= (this._ChildNodes.length - 1)){
+		if(state == BehaviourNodeState.SUCCESS){
 			this._ExecutionContext.RemoveExecutable(this._ActiveElement);
 			this._ActiveElement = null;
 			this.Success();
 			return;
 		}
+
+		if(this._ActiveElementIndex >= (this._ChildNodes.length - 1)){
+			this._ExecutionContext.RemoveExecutable(this._ActiveElement);
+			this._ActiveElement = null;
+			this.Fail();
+			return;
+		} 
 
 		this._ExecutionContext.RemoveExecutable(this._ActiveElement);
 		this._ActiveElement = null;

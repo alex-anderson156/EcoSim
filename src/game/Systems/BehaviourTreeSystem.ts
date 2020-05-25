@@ -4,28 +4,24 @@ import { BehaviourNodeState } from "../BehaviourTree/BehaviourNodeState";
 import { BehaviourTreeDataContext } from "../BehaviourTree/BehaviourTreeDataContext";
 import { Dictionary } from "../_System/Dictionary";
 import { Entity } from "../Entities";
+import { BehaviourTreeExecutor } from "../BehaviourTree";
 
-
-class EntityCacheObject {
-	public Entity: Entity;
-	
-	public DataContext: BehaviourTreeDataContext;
-
-	constructor(entity: Entity) {
-		this.Entity = entity;
-		this.DataContext = new BehaviourTreeDataContext(entity);
-	}
-}
-
+ 
 export class BehaviourTreeSystem {
 
-	private _BehaviourTree: BehaviourTree;
-
-	private _EntityCache: Dictionary<EntityCacheObject>;
-
-	constructor(behaviourTree: BehaviourTree) {
-		this._BehaviourTree = behaviourTree;
-
+	private _BehaviourTreeExecutors: Array<BehaviourTreeExecutor>; 
+ 
+	constructor() {
+		this._BehaviourTreeExecutors = new Array<BehaviourTreeExecutor>();
 	}
  
+	public Add(executor: BehaviourTreeExecutor) {
+		this._BehaviourTreeExecutors.push(executor);
+		executor.Init();
+	}
+
+	public Update() {
+		for(let executor of this._BehaviourTreeExecutors)
+			executor.Update();
+	}
 }

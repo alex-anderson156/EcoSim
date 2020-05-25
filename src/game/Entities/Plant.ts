@@ -1,30 +1,19 @@
 import { Entity, EntityRenderer } from "./Entity"; 
 import { Scene, Vector3 } from 'THREE';
-import { HealthComponent, IHealthListner } from "../Components/HealthComponent";
+
+import * as Components from '../Components';  
 
 /**
  * Instance data bout a specific tree
  */
-export class Plant extends Entity implements IHealthListner {
-
-
+export class Plant extends Entity {
+ 
 	constructor(position: Vector3) {
 		super(position); 
- 
-	}
-	
-
-
-	public Update(): void {
-
-	} 
- 
-	public OnDeath(): void {
-		// Plants dont die
-	}
-
-	public OnHit(): void {
-		
+  
+		this.AddComponents( 
+			new Components.NameplateComponent(),
+		);	
 	}
 }
 
@@ -36,8 +25,6 @@ export class PlantRenderer extends EntityRenderer<Plant>{
 
 
 	public Render(scene: Scene, entityRef: Plant) {
-
 		super.Render(scene, entityRef, 0);
-
 	}
 }

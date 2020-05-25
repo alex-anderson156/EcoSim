@@ -32,21 +32,16 @@ export class RepeaterNodeExecutor extends DecoratorNodeExecutor {
 			this.Running();
 			return;
 		}
+		
+		if (this._MaxIterations > 0) {
+			this._CurrentIterations++;
 
-		if (state == BehaviourNodeState.FAIL) {			
-			this._ExecutionContext.RemoveExecutable(this._ActiveElement);
-			this._ActiveElement = null;
-			this.Fail();
-			return;
-		}
-			
-		this._CurrentIterations++;
-
-		if(this._MaxIterations > 0 && this._CurrentIterations >= this._MaxIterations){
-			this._ExecutionContext.RemoveExecutable(this._ActiveElement);
-			this._ActiveElement = null;
-			this.Success();
-			return;
+			if (this._CurrentIterations >= this._MaxIterations) {
+				this._ExecutionContext.RemoveExecutable(this._ActiveElement);
+				this._ActiveElement = null;
+				this.Success();
+				return;
+			}
 		}
 
 		this._ExecutionContext.RemoveExecutable(this._ActiveElement);

@@ -6,8 +6,8 @@ export interface IWebComponentTemplate {
 
 export function WebComponentDecorator(componentData: IWebComponentTemplate) {
 	return function (constructor: CustomElementConstructor) {
-		customElements.define(componentData.componentName, constructor); 
 		Reflect.defineProperty(constructor.prototype, 'metadata', { value: { componentData: componentData } }); 
+		customElements.define(componentData.componentName, constructor); 		
 		return 
 	}
 }
@@ -28,17 +28,22 @@ export function IsIRenderFinished(object: Object): object is IRenderFinished {
 
 export class WebComponent extends HTMLElement {
 
+	private _HasRendered: boolean;
+	public get HasRendered(): boolean { return this._HasRendered; }
+
+	
 	constructor() {
 		super();
+
+		this._HasRendered = false;
 	}
 
-	connectedCallback() {
-		console.log("'I was called by the connectedCallback!");
-
+	connectedCallback() { 		 
 		if (IsIInitiliseAsync(this)) {
 			this.InitAsync()
 				.then(() => {
 					this.RenderWebComponent(); 
+					this._HasRendered = true;
 
 					if (IsIRenderFinished(this))
 						this.RenderFinished();
@@ -49,6 +54,8 @@ export class WebComponent extends HTMLElement {
 		}
 		else {
 			this.RenderWebComponent(); 
+			this._HasRendered = true;
+
 			if (IsIRenderFinished(this))
 				this.RenderFinished();
 		}            
@@ -62,9 +69,7 @@ export class WebComponent extends HTMLElement {
 		this.Destroy();
 	}
 
-	public RenderWebComponent() {
-		console.log(`Rendering Component...`);
-
+	public RenderWebComponent() { 
 		let componentMetadata: IWebComponentTemplate = <IWebComponentTemplate>(<any>this).metadata.componentData;
 
 		if (!Reflect.has(this, 'metadata'))

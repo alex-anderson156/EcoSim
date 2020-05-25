@@ -13,17 +13,29 @@ import * as _ from 'lodash';
 
 import * as Entities from '../Entities'; 
 import * as Components from '../Components';   
-
+import * as Systems from '../Systems';
+ 
+import { BehaviourTree, RepeaterNode, SequenceNode, PickRandomTargetNode, MoveToTargetNode, BehaviourTreeExecutor, PauseNode, AmIHungryNode, EatFoodSourceNode, FindFoodSourceNode } from '../BehaviourTree' 
+import { SelectorNode } from '../BehaviourTree/Composite/SelectorNode';
 
 export class SimulationScene extends EcoScene {
 
 	//#region Properties
 
 	private _World: World;
+ 
+	private _RabbitBT: BehaviourTree;
+	private _Rabbits: Entities.EntityCollection;
+	private _RabbitRenderer: Entities.RabbitRenderer;	
 
-	private _Trees: Entities.EntityCollection<Entities.Tree>;
-	private _Plants: Entities.EntityCollection<Entities.Plant>;
-	private _Rabbits: Entities.EntityCollection<Entities.Rabbit>;
+	private _Plants: Entities.EntityCollection;
+	private _PlantRenderer: Entities.PlantRenderer;
+
+
+	private _TreeRenderer: Entities.TreeRenderer;
+
+	private _EntitySystem: Systems.EntitySystem;
+	private _BehaviourTreeSystem: Systems.BehaviourTreeSystem;
 
 	//#endregion
 
@@ -37,7 +49,23 @@ export class SimulationScene extends EcoScene {
 
 
 	public LoadContent(): Promise<void> { 
-		return Promise.resolve();
+		let promises: Array<Promise<any>> = new Array<Promise<any>>();
+		
+		this._RabbitRenderer = new Entities.RabbitRenderer();
+		promises.push(this._RabbitRenderer.Load());
+ 
+		this._PlantRenderer = new Entities.PlantRenderer();
+		promises.push(this._PlantRenderer.Load());
+
+		this._TreeRenderer = new Entities.TreeRenderer();
+		promises.push(this._TreeRenderer.Load());
+
+		this._BehaviourTreeSystem = new Systems.BehaviourTreeSystem();
+		
+		return Promise.all(promises)
+			.then(() => { 
+				
+			});
 	}
 
 	public BuildScene(wegGLRenderer: WebGLRenderer, css2drenderer: CSS2DRenderer, css3drenderer: CSS3DRenderer): void {	
@@ -49,7 +77,7 @@ export class SimulationScene extends EcoScene {
 		this._SceneObj.add(ambientLight);
 
 		let pointLight: PointLight = new PointLight(0x404040, 3, 500, 2);
-		pointLight.position.set(32, 100, 32);
+		pointLight.position.set(31.5, 100, 31.5);
 		pointLight.castShadow = true;
 		let pointLightHelper: PointLightHelper = new PointLightHelper(pointLight); 
 
@@ -82,99 +110,97 @@ export class SimulationScene extends EcoScene {
 			new MapRenderer(regionDict)
 		);
 		this._World.Build(this);	
+ 
 
 		this.SeedTrees(50);
 		this.SeedPlants(50);
 		this.SeedRabbits(10);
+
+		this._EntitySystem = new Systems.EntitySystem();
+		this._EntitySystem.AddCollections(this._Plants, this._Rabbits)
 	}
   
 	public Update(): void {
 
-		if(this._Plants){
-			_.forEach(this._Plants.Entities, plant => plant.Update());
-		}
-
-		if(this._Rabbits){
-			_.forEach(this._Rabbits.Entities, rabbit => rabbit.Update());
-		}
-
+		
+		this._BehaviourTreeSystem.Update();
 	}	
 
 	//#region Private Methods
 
 	private SeedTrees(count: number) {
-		let treeRenderer: Entities.TreeRenderer = new Entities.TreeRenderer();
-		treeRenderer.Load()
-		.then(() => {
-			for(let i = 0 ; i < count;) {
-				let randX: number = Math.floor(Math.random() * this._World.WorldWidth)
-				let randZ: number = Math.floor(Math.random() * this._World.WorldDepth)
+		 
+		for(let i = 0 ; i < count;) {
+			let randX: number = Math.floor(Math.random() * this._World.WorldWidth)
+			let randZ: number = Math.floor(Math.random() * this._World.WorldDepth)
 
-				if(!this._World.IsPassable(randX, randZ)) {
-					continue;
-				}
-
-				treeRenderer.Render(this._SceneObj, new Entities.Tree(new Vector3(randX, 1, randZ)));
-				i++
+			if(!this._World.IsPassable(randX, randZ)) {
+				continue;
 			}
-		});
+
+			this._TreeRenderer.Render(this._SceneObj, new Entities.Tree(new Vector3(randX, 1, randZ)));
+			i++
+		} 
 	}
 
 	private SeedPlants(count: number) {
-		this._Plants = new Entities.EntityCollection<Entities.Plant>();
+		this._Plants = new Entities.EntityCollection();
 		
-		let plantRenderer: Entities.PlantRenderer = new Entities.PlantRenderer();
-		plantRenderer.Load()
-		.then(() => {
-			for(let i = 0 ; i < count; ) {
-				let randX: number = Math.floor(Math.random() * this._World.WorldWidth)
-				let randZ: number = Math.floor(Math.random() * this._World.WorldDepth)
+		for(let i = 0 ; i < count; ) {
+			let randX: number = Math.floor(Math.random() * this._World.WorldWidth)
+			let randZ: number = Math.floor(Math.random() * this._World.WorldDepth)
 
-				if(!this._World.IsPassable(randX, randZ)) {	
-					continue;
-				}
-
-				let plant: Entities.Plant = new Entities.Plant(new Vector3(randX, 1, randZ));
-
-				plant.AddComponents(
-					new Components.HealthComponent(5, 10).Subscribe(plant),
-				)
-				
-				plantRenderer.Render(this._SceneObj, plant);
-				this._Plants.Add(plant);
-				i++
+			if(!this._World.IsPassable(randX, randZ)) {	
+				continue;
 			}
-		});
+
+			let plant: Entities.Plant = new Entities.Plant(new Vector3(randX, 1, randZ));
+			this._Plants.Add(plant);
+
+			this._PlantRenderer.Render(this._SceneObj, plant);				
+			i++
+		}
 	}
 
 	private SeedRabbits(count: number) {
-		this._Rabbits = new Entities.EntityCollection<Entities.Rabbit>();
-		let rabbitLoader: Entities.RabbitRenderer = new Entities.RabbitRenderer();
-		rabbitLoader.Load()
-			.then(() => {
+		this._Rabbits = new Entities.EntityCollection();
+		
+		this._RabbitBT = new BehaviourTree(
+			new RepeaterNode(
+				new SelectorNode(
+					// FIND FOOD 
+					new SequenceNode(
+						new AmIHungryNode(),
+						new FindFoodSourceNode(this._Plants),
+						new MoveToTargetNode(),
+						new EatFoodSourceNode()
+					),
 
-				for(let i = 0 ; i < count;) {
-					let randX: number = Math.floor(Math.random() * this._World.WorldWidth)
-					let randZ: number = Math.floor(Math.random() * this._World.WorldDepth)
-
-					if(!this._World.IsPassable(randX, randZ)) {	
-						continue;
-					}
-					
-					let rabbit: Entities.Entity = new Entities.Entity(
-						new Vector3(randX, 1.15, randZ),
-					);					
-
-					rabbit.AddComponents(
-						//new Components.NameplateComponent(),
-						new Components.HungerComponent(10),
-						//new Components.RabbitBehaviourComponent(this._World, this._Plants)
+					// ROAM
+					new SequenceNode(
+						new PickRandomTargetNode(this._World),
+						new MoveToTargetNode(),
+						new PauseNode(2)
 					)
- 					rabbitLoader.Render(this._SceneObj, rabbit); 
-					this._Rabbits.Add(rabbit);
-					i++;
-				}
-			});
+				) 
+			)
+		);
+
+		for(let i = 0 ; i < count;) {
+			let randX: number = Math.floor(Math.random() * this._World.WorldWidth)
+			let randZ: number = Math.floor(Math.random() * this._World.WorldDepth)
+
+			if(!this._World.IsPassable(randX, randZ)) {	
+				continue;
+			}
+			
+			let rabbit: Entities.Rabbit = new Entities.Rabbit(new Vector3(randX, 1.15, randZ), this._World);					
+			
+			this._BehaviourTreeSystem.Add(new BehaviourTreeExecutor(this._RabbitBT, rabbit));			
+			this._Rabbits.Add(rabbit);
+			this._RabbitRenderer.Render(this._SceneObj, rabbit); 
+			i++;
+		} 
 	}
   
 	//#endregion

@@ -5,17 +5,34 @@ import { IBehaviourTreeDataContext } from "../BehaviourTreeDataContext";
 
 
 export class PickRandomTargetNode extends BehaviourNode {
-	public CreateExecutor(): import("../ExecutorNode").IExecutorNode {
-		return new PickRandomTargetExecutorNode();
+
+	private readonly _World: World;
+
+	constructor(world: World) {
+		super();
+		this._World = world;
+	}
+
+	public CreateExecutor(): IExecutorNode {
+		return new PickRandomTargetExecutorNode(this._World);
 	}
 }
 
 import { Vector3 } from 'THREE';
+import { World } from "../../World";
 
 export class PickRandomTargetExecutorNode extends ExecutorNode {
 
 	private _CurrentEntityPosition: Vector3;
 	private _EnableYAxisMovement: boolean = false;
+
+	private readonly _World: World;
+
+	constructor(world: World) {
+		super();
+		this._World = world;
+	}
+
 
 	public Init(executionContext: IExecutionContext, dataContext: IBehaviourTreeDataContext): void {
 		super.Init(executionContext, dataContext);
@@ -24,9 +41,14 @@ export class PickRandomTargetExecutorNode extends ExecutorNode {
 	}
 
 	public Process(dataContext: IBehaviourTreeDataContext): void {
-		let moveToPosition: Vector3 = this.GetRandomMoveToVector3(); 		
-		dataContext.SetVar('MoveToPosition', moveToPosition);	
-		this.Success();
+		let moveToPosition: Vector3 = this.GetRandomMoveToVector3(); 	
+		
+		let mapData = this._World.GetTileData(Math.round(moveToPosition.x), Math.round(moveToPosition.z));  
+		if (this._EnableYAxisMovement || mapData.Region.IsPassable) { 
+			dataContext.SetVar('MoveToPosition', moveToPosition);	
+			this.Success();
+			return;		  
+		} 
 	}
 
 
@@ -55,6 +77,6 @@ export class PickRandomTargetExecutorNode extends ExecutorNode {
 			this._CurrentEntityPosition.z + moveVector.z
 		);
 
-		return newPosition.clamp(new Vector3(0, 0, 0), new Vector3(10 - 1, 10 - 1, 10 - 1));
+		return newPosition.clamp(new Vector3(0, 0, 0), new Vector3(this._World.WorldWidth - 1, this._World.WorldMaxHeight - 1, this._World.WorldDepth - 1));
 	}
 }

@@ -23,7 +23,7 @@ export class MapRenderer implements IMapRenderer {
 				
 				let regionIndex = 0;
 				for(let region of this._RegionData.Values) {
-					if(tileData.Value < region.Level)
+					if(tileData.Value <= region.Level)
 						break;
 
 					regionIndex++;

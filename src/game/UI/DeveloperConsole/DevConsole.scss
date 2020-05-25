@@ -1,0 +1,66 @@
+
+
+dev-console {
+	position: absolute; 
+	width: 100%;
+	
+	z-index: 100;
+
+	font-family: consolas;
+
+	.Console {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		background: rgba(122, 150, 200, 0.5);
+		color: ghostwhite;
+
+		.Marker { 
+			flex: 0 0 auto;
+			font-weight: bolder;
+			margin: 0 .33rem;
+		}
+
+		input[type=text] { 
+			flex: 1;
+			width: 100%;
+			background: rgba(122, 150, 200, 0.3);
+			color: ghostwhite;
+			
+			border: 0;
+			padding: .33rem; 
+			outline: none;
+		} 
+	}
+
+
+	.CommandHistory {
+		margin: .33rem;
+		color: ghostwhite;
+
+		.HistoryItem {
+			margin: 0;
+
+			&.Verbose {
+				color: lightgray;
+			}
+			&.Command {
+				color: cornflowerblue;
+			}
+			&.Debug {
+				color: ghostwhite;
+			}
+			&.Warning {
+				color: #ccaa00;
+			}
+			&.Error {
+				color: #ff1a1a;
+			} 
+		}
+
+		:before {
+			content: '> ';
+		}
+	}
+
+}

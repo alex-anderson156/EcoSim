@@ -32,11 +32,13 @@ export class BehaviourTreeExecutor implements IExecutionContext {
 	}
 
 
-	public AddExecutable(executor: IExecutorNode): void {
+	public AddExecutable(executor: IExecutorNode): void { 
+		//console.log('Adding BT node: ', executor);
 		this._NodesAwaitingActivation.push(executor);
 	}
 
-	public RemoveExecutable(executor: IExecutorNode): void {
+	public RemoveExecutable(executor: IExecutorNode): void { 
+		//console.log('Removing BT node: ', executor);
 		this._NodesAwaitingRemoval.push(executor);
 	}
 
@@ -53,8 +55,11 @@ export class BehaviourTreeExecutor implements IExecutionContext {
 		// Process Active Nodes 
 		// TODO AA : Do we really need to process all active nodes, or only the top level one?
 		//  I think we can get away with only the top level node if it returns RUNNING.
-		//  Q. What about parallel running? 
-		for (let activeNode of _.reverse(this._ActiveNodes)) {
+		//  Q. What about parallel running?  
+		// _.reverse(...) mutates the array, which is bad m'kay.
+		// [...this._ActiveNodes] creates a new copy of the array which we can safely reverse.
+		let processQueue  =  _.reverse([...this._ActiveNodes]); 
+		for (let activeNode of processQueue) {
 			activeNode.Process(this._DataContext);
 		}
 
@@ -69,9 +74,7 @@ export class BehaviourTreeExecutor implements IExecutionContext {
 		}
 
 		this._NodesAwaitingRemoval.splice(0);
-		this._NodesAwaitingActivation.splice(0);
-		//console.log('BHT Run End.');
-		console.groupEnd();
+		this._NodesAwaitingActivation.splice(0); 
 	}
 
 
