@@ -92,6 +92,8 @@ export class PathfinderMovementComponent extends Component {
 
 		const target = this._PathNodes.shift();
 		this._CurrentNode = new Vector3(target.x, this._AttachedEntity.Position.y, target.y); 
+		this._AttachedEntity.SceneGroup.lookAt(this._CurrentNode);
+
 		this._MoveState = MoveState.MOVING;
 		this._Clock.start();
 	}

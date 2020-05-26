@@ -7,5 +7,4 @@ export * from './Plant';
 
 export * from './Bird';
 
-export * from './Rabbit';
-export * from './RabbitRenderer';
+export * from './Rabbit'; 

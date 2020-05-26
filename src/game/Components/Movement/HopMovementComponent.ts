@@ -20,7 +20,7 @@ export class HopMovementComponent extends PathfinderMovementComponent {
 			return;
 
 		let y: number = (Math.sin(10 * this._HopClock.getElapsedTime()) + 1) / 6;
-		this._AttachedEntity.Position.y = 1.15 + y;
+		this._AttachedEntity.Position.y = 1 + y;
 	}
 
 	protected MoveToNextNode() {
@@ -29,12 +29,12 @@ export class HopMovementComponent extends PathfinderMovementComponent {
 		if (this._MoveState == MoveState.IDLE)
 			return;
 
-		this._AttachedEntity.Position.y = 1.15;
+		this._AttachedEntity.Position.y = 1;
 	}
 
 	public Stop() {
 		super.Stop();
-		this._AttachedEntity.Position.y = 1.15;
+		this._AttachedEntity.Position.y = 1;
 		this._HopClock.stop();
 	}
 

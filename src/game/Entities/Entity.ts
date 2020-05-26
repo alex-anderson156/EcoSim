@@ -4,6 +4,7 @@ import { GLTFLoader , GLTF} from 'THREE/examples/jsm/loaders/GLTFLoader';
 import { IComponent } from '../Components/_Component';
 import { Dictionary } from '../_System/Dictionary';
 import { Guid } from '../_System/Guid';
+import { ThirstComponent } from '../Components';
 
 export class Entity {
 
@@ -12,6 +13,13 @@ export class Entity {
 	 * Gets a Globally Unique identifier for this Entitiy.
 	 */
 	public get UUID(): Guid { return this._UUID;}
+
+	private _SceneGroup: Group
+	/**
+	 * Gets or sets the group of objects in the scene
+	 */
+	public get SceneGroup(): Group { return this._SceneGroup; }
+	public set SceneGroup(value: Group) { this._SceneGroup = value; }
 
 	protected _Position: Vector3;
 	/**
@@ -196,22 +204,22 @@ export class EntityRenderer<T extends Entity> {
 	public Render(scene: Scene, entityRef: T, resourceIndex: number = 0) {
 		
 		// base assumes only 1 mesh supplied.
-		let entityGroup: Group = this._Resources[resourceIndex].clone();
-		entityGroup.castShadow = true;
+		entityRef.SceneGroup = this._Resources[resourceIndex].clone();
+		entityRef.SceneGroup.castShadow = true;
 		
 		// Copy the entity position to the new mesh.
-		entityGroup.position.copy(entityRef.Position);
-		entityRef.Position = entityGroup.position;
+		entityRef.SceneGroup.position.copy(entityRef.Position);
+		entityRef.Position = entityRef.SceneGroup.position;
 
 		// Copy the entity rotation to the new mesh.
-		entityGroup.rotation.copy(entityRef.RotationEuler);
-		entityRef.RotationEuler = entityGroup.rotation;
+		entityRef.SceneGroup.rotation.copy(entityRef.RotationEuler);
+		entityRef.RotationEuler = entityRef.SceneGroup.rotation;
 
-		entityGroup.scale.copy(entityRef.Scale);
-		entityRef.Scale = entityGroup.scale;
+		entityRef.SceneGroup.scale.copy(entityRef.Scale);
+		entityRef.Scale = entityRef.SceneGroup.scale;
 
-		entityRef.AddComponentsToEntityGroup(entityGroup);
-		scene.add(entityGroup); 
+		entityRef.AddComponentsToEntityGroup(entityRef.SceneGroup);
+		scene.add(entityRef.SceneGroup); 
 		
 	}
 } 

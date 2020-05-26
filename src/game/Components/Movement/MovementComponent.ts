@@ -58,6 +58,8 @@ export class MovementComponent extends Component {
 			return;
 		}	
 
+		this._AttachedEntity.SceneGroup.lookAt(destination);
+ 
 		//
 		this._Clock.start();
 	}

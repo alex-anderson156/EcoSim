@@ -139,7 +139,7 @@ export class DevViewerScene extends EcoScene {
 			//	continue; 
 			//} 
 
-			let rabbit = new Entities.Entity(new Vector3(0, 1.15, 0));
+			let rabbit = new Entities.Entity(new Vector3(0, 1, 0));
 			rabbit.AddComponents(
 				new Components.HopMovementComponent(.2, this._World),
 				new Components.NameplateComponent(),
