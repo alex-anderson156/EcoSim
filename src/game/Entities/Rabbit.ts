@@ -16,7 +16,7 @@ export class Rabbit extends Entities.Entity {
 			new Components.HopMovementComponent(.4, world),
 			new Components.NameplateComponent(),
 			new Components.HungerComponent(10, 5),
-			new Components.ThirstComponent(10)
+			new Components.ThirstComponent(10, 3)
 		);
 	}
 }

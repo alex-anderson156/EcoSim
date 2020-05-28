@@ -60,6 +60,11 @@ export class World {
 		this._WorldMapData = mapGenerator.Seed(worldX, worldZ); 
 	}
  
+	public IsInWorldCoords(position: Vector3): boolean {
+		return (position.x >= 0 && position.x < this._WorldWidth)
+			&& (position.y >= 0 && position.y < this._WorldMaxHeight)
+			&& (position.z >= 0 && position.z < this._WorldDepth);
+	}
 
 	public GetTileData(x: number, z: number): MapTileData {
 		return this._WorldMapData[z][x];

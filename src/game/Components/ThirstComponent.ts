@@ -55,6 +55,12 @@ export class ThirstComponent extends Component {
 		}
 	}  
 
+	public SetThirst(value: number) {
+		this._CurrentThirst = Math.min(Math.max(value, 0), this.MaxThirst);
+		this._ThirstWebComponent.CurrentPercentage = this.ThirstPercentage; 
+		this._Clock.start();
+	}
+
 	public ReplenishThirst(amount: number): void {
 		this._CurrentThirst = Math.min(this.CurrentThirst + amount, this.MaxThirst);
 		this._ThirstWebComponent.CurrentPercentage = this.ThirstPercentage;

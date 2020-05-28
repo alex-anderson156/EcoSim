@@ -10,9 +10,11 @@ export class MoveToTargetNode extends BehaviourNode {
 }
 
 import { Vector3 } from 'THREE';
-import { MovementComponent, MoveState } from "../../Components";
+import { MovementComponent, MoveState, MoveToResult } from "../../Components";
 
 export class MoveToTargetNodeExecutor extends ExecutorNode {
+
+	private _HasFoundPath: boolean
   
 	public Init(executionContext: IExecutionContext, dataContext: IBehaviourTreeDataContext): void {
 		super.Init(executionContext, dataContext);
@@ -27,10 +29,18 @@ export class MoveToTargetNodeExecutor extends ExecutorNode {
 		if(!moveComp)
 			throw 'Given Entity Lacks a Movement Component; But has been asked to move!';
 
-		moveComp.MoveTo(target);
+		const result = moveComp.MoveTo(target);
+		console.log('Pathing Result', this._HasFoundPath);
+
+		this._HasFoundPath = result != MoveToResult.NoPath;
 	}
 
 	public Process(dataContext: IBehaviourTreeDataContext): void {
+
+		if(!this._HasFoundPath) {
+			this.Fail();
+			return;
+		}
  
 		const moveComp: MovementComponent = dataContext.Entity.GetComponent<MovementComponent>("MovementComponent");
 		moveComp.Update();

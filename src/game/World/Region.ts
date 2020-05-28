@@ -37,13 +37,19 @@ export class Region {
 	public get CanHaveTrees(): boolean { return this._CanHaveTrees; }
 	public set CanHaveTrees(value: boolean) { this._CanHaveTrees = value; }
 
-	
+	private _IsWaterSource: boolean
+	/**
+	 * Gets or sets 
+	 */
+	public get IsWaterSource(): boolean { return this._IsWaterSource; }
+	public set IsWaterSource(value: boolean) { this._IsWaterSource = value; }
  
-	constructor(name: string, maxHeightLevel: number, color: Color, isPassable: boolean, canHaveTrees: boolean = false){
+	constructor(name: string, maxHeightLevel: number, color: Color, isPassable: boolean, canHaveTrees: boolean = false, isWaterSource: boolean = false){
 		this._Name = name;
 		this._Level = maxHeightLevel;
 		this._Colour = color;
 		this._CanHaveTrees = canHaveTrees;
+		this._IsWaterSource = isWaterSource;
 		this._IsPassable = isPassable;
 	}
 }

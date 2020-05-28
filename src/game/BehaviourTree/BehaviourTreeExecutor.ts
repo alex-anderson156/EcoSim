@@ -33,12 +33,12 @@ export class BehaviourTreeExecutor implements IExecutionContext {
 
 
 	public AddExecutable(executor: IExecutorNode): void { 
-		//console.log('Adding BT node: ', executor);
+		console.log('Adding BT node: ', executor);
 		this._NodesAwaitingActivation.push(executor);
 	}
 
 	public RemoveExecutable(executor: IExecutorNode): void { 
-		//console.log('Removing BT node: ', executor);
+		console.log('Removing BT node: ', executor);
 		this._NodesAwaitingRemoval.push(executor);
 	}
 

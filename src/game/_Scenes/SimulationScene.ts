@@ -17,6 +17,11 @@ import * as Systems from '../Systems';
  
 import { BehaviourTree, RepeaterNode, SequenceNode, PickRandomTargetNode, MoveToTargetNode, BehaviourTreeExecutor, PauseNode, AmIHungryNode, EatFoodSourceNode, FindFoodSourceNode } from '../BehaviourTree' 
 import { SelectorNode } from '../BehaviourTree/Composite/SelectorNode';
+import { AmIThirstyNode } from '../BehaviourTree/Leaves/AmIThirstyNode';
+import { FindWaterSourceNode } from '../BehaviourTree/Leaves/FindWaterSource';
+import { DrinkWaterSourceNode } from '../BehaviourTree/Leaves/DrinkWaterSource';
+import { DeveloperConsole } from '../UI/DeveloperConsole/DeveloperConsole';
+import { SetThirstCommand, SetHungerCommand } from './MoveToDevCommand';
 
 export class SimulationScene extends EcoScene {
 
@@ -31,6 +36,8 @@ export class SimulationScene extends EcoScene {
 	private _Plants: Entities.EntityCollection;
 	private _PlantRenderer: Entities.PlantRenderer;
 
+	private _WaterSources: Entities.EntityCollection;
+	private _WaterSourceRenderer: Entities.WaterSourceRenderer;
 
 	private _TreeRenderer: Entities.TreeRenderer;
 
@@ -59,6 +66,9 @@ export class SimulationScene extends EcoScene {
 
 		this._TreeRenderer = new Entities.TreeRenderer();
 		promises.push(this._TreeRenderer.Load());
+
+		this._WaterSourceRenderer = new Entities.WaterSourceRenderer();
+		promises.push(this._WaterSourceRenderer.Load());
 
 		this._BehaviourTreeSystem = new Systems.BehaviourTreeSystem();
 		
@@ -92,7 +102,7 @@ export class SimulationScene extends EcoScene {
 		let regionDict = new Dictionary<Region>(); 
 		regionDict.Add('DeepWater', 	new Region('Water', 0.1, new Color(0x2b7897), false));
 		regionDict.Add('Water', 		new Region('Water', 0.2, new Color(0x45a4ca), false));
-		regionDict.Add('ShallowWater', 	new Region('Water', 0.3, new Color(0x81c1db), false));
+		regionDict.Add('ShallowWater', 	new Region('Water', 0.3, new Color(0x81c1db), false, false, true));
  
 		regionDict.Add('Sand', 		new Region('Sand', 0.33, new Color(0xf9e1a8), true)); 	
 		regionDict.Add('Sand2', 	new Region('Sand', 0.36, new Color(0xf7d990), true)); 	
@@ -111,18 +121,20 @@ export class SimulationScene extends EcoScene {
 		);
 		this._World.Build(this);	
  
-
+		this.SeedWaterSources();
 		this.SeedTrees(50);
 		this.SeedPlants(50);
-		this.SeedRabbits(10);
+		this.SeedRabbits(25);
 
 		this._EntitySystem = new Systems.EntitySystem();
-		this._EntitySystem.AddCollections(this._Plants, this._Rabbits)
+		this._EntitySystem.AddCollections(this._Plants, this._Rabbits);
+ 
+		DeveloperConsole.Register(new SetHungerCommand(this._Rabbits));
+		DeveloperConsole.Register(new SetThirstCommand(this._Rabbits));
 	}
   
 	public Update(): void {
-
-		
+		this._EntitySystem.Update();
 		this._BehaviourTreeSystem.Update();
 	}	
 
@@ -139,7 +151,7 @@ export class SimulationScene extends EcoScene {
 			}
 
 			this._TreeRenderer.Render(this._SceneObj, new Entities.Tree(new Vector3(randX, 1, randZ)));
-			i++
+			i++;
 		} 
 	}
 
@@ -158,7 +170,41 @@ export class SimulationScene extends EcoScene {
 			this._Plants.Add(plant);
 
 			this._PlantRenderer.Render(this._SceneObj, plant);				
-			i++
+			i++;
+		}
+	}
+
+	private SeedWaterSources() {
+		this._WaterSources = new Entities.EntityCollection();
+		
+		for(let z = 0 ; z < this._World.WorldDepth; z++) {
+			for(let x = 0 ; x < this._World.WorldWidth; x++) {				 
+				const tileData = this._World.GetTileData(x, z);
+				if(!tileData.Region.IsWaterSource)
+					continue;
+
+				let directions: Array<[number, number]> = [
+					[1, 0],
+					[0, 1],
+					[-1, 0],
+					[0, -1]
+				]
+
+				for(let direction of directions) {
+					const targetPos: Vector3 = new Vector3(x + (direction[0] * .6), 1, z + (direction[1] * .6));
+					const directionCell: Vector3 = new Vector3(x + direction[0], 1, z + direction[1]);
+
+					if(!this._World.IsInWorldCoords(directionCell))
+						continue;
+ 
+					if(!this._World.GetTileData(directionCell.x, directionCell.z).Region.IsPassable)
+						continue;
+
+					let waterSource: Entities.WaterSource = new Entities.WaterSource(targetPos);
+					this._WaterSources.Add(waterSource);
+					this._WaterSourceRenderer.Render(this._SceneObj, waterSource); 
+				} 
+			}
 		}
 	}
 
@@ -168,7 +214,15 @@ export class SimulationScene extends EcoScene {
 		this._RabbitBT = new BehaviourTree(
 			new RepeaterNode(
 				new SelectorNode(
-					// FIND FOOD 
+					// FIND WATER 
+					new SequenceNode(
+						new AmIThirstyNode(),
+						new FindWaterSourceNode(this._WaterSources),
+						new MoveToTargetNode(),
+						new DrinkWaterSourceNode()
+					),
+
+					//// FIND FOOD 
 					new SequenceNode(
 						new AmIHungryNode(),
 						new FindFoodSourceNode(this._Plants),
@@ -194,7 +248,7 @@ export class SimulationScene extends EcoScene {
 				continue;
 			}
 			
-			let rabbit: Entities.Rabbit = new Entities.Rabbit(new Vector3(randX, 1.15, randZ), this._World);					
+			let rabbit: Entities.Rabbit = new Entities.Rabbit(new Vector3(randX, 1, randZ), this._World);					
 			
 			this._BehaviourTreeSystem.Add(new BehaviourTreeExecutor(this._RabbitBT, rabbit));			
 			this._Rabbits.Add(rabbit);

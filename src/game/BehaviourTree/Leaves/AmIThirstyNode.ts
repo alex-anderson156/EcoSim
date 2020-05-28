@@ -4,7 +4,7 @@ import { IExecutionContext } from "../BehaviourTreeExecutor";
 import { IBehaviourTreeDataContext } from "../BehaviourTreeDataContext";
  
 
-export class AmIHungryNode extends BehaviourNode {
+export class AmIThirstyNode extends BehaviourNode {
 
 	 
 	constructor() {
@@ -12,23 +12,23 @@ export class AmIHungryNode extends BehaviourNode {
 	}
 
 	public CreateExecutor(): IExecutorNode {
-		return new AmIHungryNodeExecutor();
+		return new AmIThirstyNodeExecutor();
 	} 
 }
 
 import { Clock } from 'THREE';
-import { HungerComponent } from "../../Components";
+import { ThirstComponent } from "../../Components";
 
-export class AmIHungryNodeExecutor extends ExecutorNode {
+export class AmIThirstyNodeExecutor extends ExecutorNode {
 
 	constructor() {
 		super();
 	}
 
 	public Process(dataContext: IBehaviourTreeDataContext): void {  
-		const hunger = dataContext.Entity.GetComponent<HungerComponent>('HungerComponent');
+		const hunger = dataContext.Entity.GetComponent<ThirstComponent>('ThirstComponent');
  
-		if(hunger.HungerPercentage <= 80)
+		if(hunger.ThirstPercentage <= 80)
 			this.Success();
 		else
 			this.Fail(); 

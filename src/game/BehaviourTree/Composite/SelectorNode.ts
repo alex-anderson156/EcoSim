@@ -27,14 +27,14 @@ export class SelectorNodeExecutor extends CompositeNodeExecutor {
 			return;
 		}
 
-		if(state == BehaviourNodeState.SUCCESS){
+		if (state == BehaviourNodeState.SUCCESS) {
 			this._ExecutionContext.RemoveExecutable(this._ActiveElement);
 			this._ActiveElement = null;
 			this.Success();
 			return;
 		}
 
-		if(this._ActiveElementIndex >= (this._ChildNodes.length - 1)){
+		if (this._ActiveElementIndex >= (this._ChildNodes.length - 1)) {
 			this._ExecutionContext.RemoveExecutable(this._ActiveElement);
 			this._ActiveElement = null;
 			this.Fail();

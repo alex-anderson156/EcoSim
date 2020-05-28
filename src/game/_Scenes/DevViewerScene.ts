@@ -14,10 +14,13 @@ import * as Components from '../Components';
 
 import { BehaviourTree, RepeaterNode, SequenceNode, PickRandomTargetNode, MoveToTargetNode, BehaviourTreeExecutor, PauseNode, AmIHungryNode, EatFoodSourceNode, FindFoodSourceNode, SuccessorNode } from '../BehaviourTree' 
 import { BehaviourTreeSystem } from '../Systems/BehaviourTreeSystem'; 
-import { EntitySystem } from '../Systems';
-import { IDevCommand } from '../UI/DeveloperConsole/Commands/IDevCommand'; 
-import { MovementComponent } from '../Components';
+import { EntitySystem } from '../Systems'; 
 import { DeveloperConsole } from '../UI/DeveloperConsole/DeveloperConsole';
+import { MoveToDevCommand, SetThirstCommand } from './MoveToDevCommand';
+import { SelectorNode } from '../BehaviourTree/Composite/SelectorNode';
+import { AmIThirstyNode } from '../BehaviourTree/Leaves/AmIThirstyNode';
+import { FindWaterSourceNode } from '../BehaviourTree/Leaves/FindWaterSource';
+import { DrinkWaterSourceNode } from '../BehaviourTree/Leaves/DrinkWaterSource';
 
 export class DevViewerScene extends EcoScene {
 	//#region Game Session Vars
@@ -29,6 +32,9 @@ export class DevViewerScene extends EcoScene {
 
 	private _Plants: Entities.EntityCollection;
 	private _PlantRenderer: Entities.PlantRenderer;
+
+	private _WaterSources: Entities.EntityCollection;
+	private _WaterSourceRenderer: Entities.WaterSourceRenderer;
 
 	private _BehaviourTreeSystem: BehaviourTreeSystem;
 	private _EntitySystem: EntitySystem;
@@ -51,6 +57,9 @@ export class DevViewerScene extends EcoScene {
  
 		this._PlantRenderer = new Entities.PlantRenderer();
 		promises.push(this._PlantRenderer.Load());
+				
+		this._WaterSourceRenderer = new Entities.WaterSourceRenderer();
+		promises.push(this._WaterSourceRenderer.Load());
 
 		this._BehaviourTreeSystem = new BehaviourTreeSystem();
 		this._EntitySystem = new EntitySystem();
@@ -87,18 +96,18 @@ export class DevViewerScene extends EcoScene {
 		 
 		let regionDict = new Dictionary<Region>(); 
 		 
-		regionDict.Add('Water',  new Region('Water', 0.8, new Color(0x45a4ca), false));  
+		regionDict.Add('Water',  new Region('Water', 0.8, new Color(0x45a4ca), false, false, true));  
 		regionDict.Add('Grass',  new Region('Grass', 1.1, new Color(0x2cb42c), true)); 
    
 		this._World = new World(
 			5, 5, 5,
 			new StaticMapGenerator(
 				[
-					[1,0,0,0,0],
-					[1,0,1,1,1],
-					[1,0,1,0,1],
-					[1,0,0,0,1],
 					[1,1,1,1,1],
+					[1,1,1,1,1],
+					[1,1,1,1,1],
+					[0,1,1,1,0],
+					[0,0,0,0,0],
 				]
 			),
 			new MapRenderer(regionDict)
@@ -108,6 +117,7 @@ export class DevViewerScene extends EcoScene {
 		this._Rabbits = new Entities.EntityCollection();
 		this._Plants = new Entities.EntityCollection();
   
+		this.SeedWaterSources();
 
 		// --
 		// Create plants
@@ -128,18 +138,47 @@ export class DevViewerScene extends EcoScene {
 			this._PlantRenderer.Render(this._SceneObj, plant);
 			i++;
 		}
+
+		this._RabbitBT = new BehaviourTree(
+			new RepeaterNode(
+				new SelectorNode(
+					// FIND WATER 
+					new SequenceNode(
+						new AmIThirstyNode(),
+						new FindWaterSourceNode(this._WaterSources),
+						new MoveToTargetNode(),
+						new DrinkWaterSourceNode()
+					),
+
+					//// FIND FOOD 
+					new SequenceNode(
+						new AmIHungryNode(),
+						new FindFoodSourceNode(this._Plants),
+						new MoveToTargetNode(),
+						new EatFoodSourceNode()
+					),
+
+					// ROAM
+					new SequenceNode(
+						new PickRandomTargetNode(this._World),
+						new MoveToTargetNode(),
+						new PauseNode(2)
+					)
+				) 
+			)
+		);
  
 		// --
 		// Create Rabbits
-		for(let i: number = 0; i < 1 ; ) {
-			//let randX: number = Math.floor(Math.random() * this._World.WorldWidth);
-			//let randZ: number = Math.floor(Math.random() * this._World.WorldDepth);
+		for(let i: number = 0; i < 3 ; ) {
+			let randX: number = Math.floor(Math.random() * this._World.WorldWidth);
+			let randZ: number = Math.floor(Math.random() * this._World.WorldDepth);
 
-			//if(!this._World.IsPassable(randX, randZ)) { 
-			//	continue; 
-			//} 
+			if(!this._World.IsPassable(randX, randZ)) { 
+				continue; 
+			} 
 
-			let rabbit = new Entities.Entity(new Vector3(0, 1, 0));
+			let rabbit = new Entities.Entity(new Vector3(randX, 1, randZ));
 			rabbit.AddComponents(
 				new Components.HopMovementComponent(.2, this._World),
 				new Components.NameplateComponent(),
@@ -149,19 +188,19 @@ export class DevViewerScene extends EcoScene {
 
 			this._Rabbits.Add(rabbit);
 			this._RabbitRenderer.Render(this._SceneObj, rabbit); 
-			//this._BehaviourTreeSystem.Add(new BehaviourTreeExecutor(this._RabbitBT, rabbit));
+			this._BehaviourTreeSystem.Add(new BehaviourTreeExecutor(this._RabbitBT, rabbit));
 
 			i++;
 		} 
+
 		this._EntitySystem.AddCollections(this._Rabbits);
-
-
 		DeveloperConsole.Register(new MoveToDevCommand(this._World, this._Rabbits.Entities[0]));
+		DeveloperConsole.Register(new SetThirstCommand(this._Rabbits));
 	}
  
 	public Update(): void {	
 		this._EntitySystem.Update();	 
-		this._Rabbits.Entities.forEach(e => e.Update());
+		this._BehaviourTreeSystem.Update();
 	}
 
 	//#endregion
@@ -169,32 +208,46 @@ export class DevViewerScene extends EcoScene {
 
 	//#region Private Methods
 
+	private SeedWaterSources() {
+		this._WaterSources = new Entities.EntityCollection();
+		
+		for(let z = 0 ; z < this._World.WorldDepth; z++) {
+			for(let x = 0 ; x < this._World.WorldWidth; x++) {				 
+				const tileData = this._World.GetTileData(x, z);
+				if(!tileData.Region.IsWaterSource)
+					continue;
+
+				let directions: Array<[number, number]> = [
+					[1,  0],
+					[0,  1],
+					[-1, 0],
+					[0, -1]
+				]
+
+				for(let direction of directions) {
+					const targetPos: Vector3 = new Vector3(x + (direction[0] * .6), 1, z + (direction[1] * .6));
+					const directionCell: Vector3 = new Vector3(x + direction[0], 1, z + direction[1]);
+
+					if(!this._World.IsInWorldCoords(directionCell))
+						continue;
+ 
+					if(!this._World.GetTileData(directionCell.x, directionCell.z).Region.IsPassable)
+						continue;
+
+					let waterSource: Entities.WaterSource = new Entities.WaterSource(targetPos);
+					this._WaterSources.Add(waterSource);
+					this._WaterSourceRenderer.Render(this._SceneObj, waterSource); 
+				}
+
+				
+			}
+		}
+	}
+
 	//#endregion
 
 	//#region Events
 
 	//#endregion
 }
-
-
-class MoveToDevCommand implements IDevCommand {
-	Keyword: string = 'moveto';
-	Format: string = '$x$ $y$';
-
-	private _EntityToAct: Entities.Entity;
-	private _World: World;
-
-	constructor(world: World, actor: Entities.Entity) {
-		this._World = world;
-		this._EntityToAct = actor;
-	}
-
-	Execute(console: import("../UI/DeveloperConsole/DeveloperConsole").IDeveloperConsoleContext, args: Dictionary<any>): void {
-		
-		let movementComponent = this._EntityToAct.GetComponent<MovementComponent>('MovementComponent'); 
-		const movePosition: Vector3 = new Vector3(args.GetValue('x'), 1, args.GetValue('y')); 
-		movementComponent.MoveTo(movePosition);
-
-	}
-	
-}
+ 

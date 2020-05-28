@@ -53,7 +53,7 @@ export class NameplateComponent extends WebComponent implements IComponent {
 	//#endregion Public Methods
 
 	//#region IComponent
-
+ 
 	public Render(group: Group): void {   
  
 		const nt = new CSS3DObject(this);
@@ -62,7 +62,10 @@ export class NameplateComponent extends WebComponent implements IComponent {
 		group.add(nt); 
 	}
 
-	public Update(): void { }
+	public Update(): void {
+
+
+	 }
 
 	/**
 	 * Assigns this component to an Entity - used so the component can interact with the entity or world the entity inhabits.

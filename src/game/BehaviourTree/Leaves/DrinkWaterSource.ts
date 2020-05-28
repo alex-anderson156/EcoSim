@@ -4,9 +4,7 @@ import { IExecutionContext } from "../BehaviourTreeExecutor";
 import { IBehaviourTreeDataContext } from "../BehaviourTreeDataContext";
  
 
-
-
-export class EatFoodSourceNode extends BehaviourNode {
+export class DrinkWaterSourceNode extends BehaviourNode {
  
 
 	constructor() {
@@ -14,18 +12,18 @@ export class EatFoodSourceNode extends BehaviourNode {
 	}
 
 	public CreateExecutor(): IExecutorNode {
-		return new EatFoodSourceExecutor();
+		return new DrinkWaterSourceExecutor();
 	} 
 }
 
 
 import { Clock } from 'THREE';
-import { HungerComponent } from "../../Components";
+import { ThirstComponent } from "../../Components";
 import { Entity } from "../../Entities";
 
-export class EatFoodSourceExecutor extends ExecutorNode {
+export class DrinkWaterSourceExecutor extends ExecutorNode {
 	   
-	private _ClosestFoodSource: Entity = null;
+	private _ClosestWaterSource: Entity = null;
 	private _Clock: Clock;
 
 	constructor() {
@@ -35,14 +33,14 @@ export class EatFoodSourceExecutor extends ExecutorNode {
 
 	public Init(executionContext: IExecutionContext, dataContext: IBehaviourTreeDataContext): void {
 		super.Init(executionContext, dataContext); 
-		this._ClosestFoodSource = dataContext.GetVar<Entity>('ClosestFoodSource');
-		dataContext.ClearVar('ClosestFoodSource');
+		this._ClosestWaterSource = dataContext.GetVar<Entity>('ClosestWaterSource');
+		dataContext.ClearVar('ClosestWaterSource');
 		this._Clock.start();		
 	}
 
 	public Process(dataContext: IBehaviourTreeDataContext): void { 
 		if(this._Clock.getElapsedTime() >= 3) {
-			dataContext.Entity.GetComponent<HungerComponent>("HungerComponent").ReplenishHunger(3);
+			dataContext.Entity.GetComponent<ThirstComponent>("ThirstComponent").ReplenishThirst(3);
 			this.Success();
 		}
 		else {

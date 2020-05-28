@@ -55,6 +55,12 @@ export class HungerComponent extends Component {
 		}
 	}  
 
+	public SetHunger(value: number ) {
+		this._CurrentHunger = Math.min(Math.max(value, 0), this.MaxHunger);
+		this._HungerWebComponent.CurrentPercentage = this.HungerPercentage; 
+		this._Clock.start();
+	}
+
 	public ReplenishHunger(amount: number): void {
 		this._CurrentHunger = Math.min(this.CurrentHunger + amount, this.MaxHunger);
 		this._HungerWebComponent.CurrentPercentage = this.HungerPercentage;

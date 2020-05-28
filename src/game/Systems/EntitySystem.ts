@@ -32,10 +32,10 @@ export class EntitySystem {
 			if (hungerComponent) {
 				hungerComponent.Update();
 
-				if(hungerComponent.HungerPercentage <= 0) {
-					this.Kill(entity);
-					continue;
-				}
+				//if(hungerComponent.HungerPercentage <= 0) {
+				//	this.Kill(entity);
+				//	continue;
+				//}
 			}
 
 			// Thirst
@@ -43,10 +43,10 @@ export class EntitySystem {
 			if (thirstComponent) {
 				thirstComponent.Update();
 
-				if(thirstComponent.ThirstPercentage <= 0) {
-					this.Kill(entity);
-					continue;
-				}
+				//if(thirstComponent.ThirstPercentage <= 0) {
+				//	this.Kill(entity);
+				//	continue;
+				//}
 			}
 		}
 	}
